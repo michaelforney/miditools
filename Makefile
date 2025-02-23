@@ -11,8 +11,11 @@ ALSA_CFLAGS?=$$(pkg-config --cflags alsa)
 ALSA_LDFLAGS?=$$(pkg-config --libs-only-L --libs-only-other alsa)
 ALSA_LDLIBS?=$$(pkg-config --libs-only-l alsa)
 
+COREMIDI?=n
+
 BIN=$(BIN-y)
 BIN-$(ALSA)+=alsarawio alsaseqio
+BIN-$(COREMIDI)+=coremidiio
 
 TARGET=$(BIN)
 
@@ -27,6 +30,9 @@ alsaseqio.o: alsaseqio.c
 alsaseqio: alsaseqio.o util.o
 	$(CC) $(LDFLAGS) $(ALSA_LDFLAGS) -o $@ alsaseqio.o util.o $(ALSA_LDLIBS) -l pthread
 
+coremidiio: coremidiio.o
+	$(CC) $(LDFLAGS) -o $@ coremidiio.o -framework CoreMIDI -framework CoreFoundation
+
 .PHONY: install
 install: $(BIN)
 	mkdir -p $(DESTDIR)$(BINDIR)
@@ -36,4 +42,5 @@ install: $(BIN)
 .PHONY: clean
 clean:
 	rm -f alsarawio alsarawio.o\
-		alsaseqio alsaseqio.o
+		alsaseqio alsaseqio.o\
+		coremidiio coremidiio.o
