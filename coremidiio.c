@@ -445,10 +445,8 @@ main(int argc, char *argv[])
 	}
 
 	err = MIDIClientCreate(CFSTR("coremidiio"), notify, ctx, &client);
-	if (err) {
-		fprintf(stderr, "MIDIClientCreate: %d", err);
-		exit(1);
-	}
+	if (err)
+		fatal("MIDIClientCreate: %d", err);
 	if (mode & READ)
 		initreader(&ctx[0], client, port[0], fd[1]);
 	if (mode & WRITE)
