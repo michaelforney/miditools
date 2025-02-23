@@ -359,7 +359,6 @@ notify(const struct MIDINotification *n, void *info)
 	MIDIObjectRef obj;
 
 	ctx = info;
-	fprintf(stderr, "notify %d\n", n->messageID);
 	if (n->messageID == kMIDIMsgObjectRemoved) {
 		obj = ((MIDIObjectAddRemoveNotification *)n)->child;
 		if (obj == ctx[0].ep || obj == ctx[1].ep)
