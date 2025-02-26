@@ -113,9 +113,11 @@ inputreader(int fd)
 					fatal("snd_seq_event_output: %s", snd_strerror(ret));
 			}
 		}
-		ret = snd_seq_drain_output(seq);
-		if (ret < 0)
-			fatal("snd_seq_drain_output: %s", snd_strerror(ret));
+		do {
+			ret = snd_seq_drain_output(seq);
+			if (ret < 0 && ret != -EAGAIN)
+				fatal("snd_seq_drain_output: %s", snd_strerror(ret));
+		} while (ret != 0);
 	}
 }
 
