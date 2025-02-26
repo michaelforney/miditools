@@ -12,6 +12,7 @@ ALSA_LDFLAGS?=$$(pkg-config --libs-only-L --libs-only-other alsa)
 ALSA_LDLIBS?=$$(pkg-config --libs-only-l alsa)
 
 COREMIDI?=n
+COREMIDI_LDLIBS?=-framework CoreMIDI -framework CoreFoundation
 
 BIN=$(BIN-y)
 BIN-$(ALSA)+=alsarawio alsaseqio
@@ -33,7 +34,7 @@ alsaseqio: $(ALSASEQIO_OBJ)
 
 COREMIDIIO_OBJ=coremidiio.o fatal.o spawn.o
 coremidiio: $(COREMIDIIO_OBJ)
-	$(CC) $(LDFLAGS) -o $@ $(COREMIDIIO_OBJ) -framework CoreMIDI -framework CoreFoundation
+	$(CC) $(LDFLAGS) -o $@ $(COREMIDIIO_OBJ) $(COREMIDI_LDLIBS)
 
 .PHONY: install
 install: $(BIN)
