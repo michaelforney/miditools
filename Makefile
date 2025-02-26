@@ -31,7 +31,7 @@ ALSASEQIO_OBJ=alsaseqio.o fatal.o
 alsaseqio: $(ALSASEQIO_OBJ)
 	$(CC) $(LDFLAGS) $(ALSA_LDFLAGS) -o $@ $(ALSASEQIO_OBJ) $(ALSA_LDLIBS) -l pthread
 
-COREMIDIIO_OBJ=coremidiio.o fatal.o
+COREMIDIIO_OBJ=coremidiio.o fatal.o spawn.o
 coremidiio: $(COREMIDIIO_OBJ)
 	$(CC) $(LDFLAGS) -o $@ $(COREMIDIIO_OBJ) -framework CoreMIDI -framework CoreFoundation
 
