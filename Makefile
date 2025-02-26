@@ -45,4 +45,5 @@ install: $(BIN)
 clean:
 	rm -f alsarawio alsarawio.o\
 		alsaseqio alsaseqio.o\
-		coremidiio coremidiio.o
+		coremidiio coremidiio.o\
+		fatal.o spawn.o
