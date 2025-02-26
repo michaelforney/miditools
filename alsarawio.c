@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (dup2(fd, 6) < 0 || dup2(fd, 7) < 0) {
+	if (dup2(fd, 0) < 0 || dup2(fd, 1) < 0) {
 		perror("dup2");
 		return 1;
 	}

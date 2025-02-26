@@ -136,13 +136,12 @@ main(int argc, char *argv[])
 	snd_seq_port_subscribe_t *sub;
 	pthread_t thread;
 	char *port, *end;
-	int fd[2], mode, cap, fflag;
+	int fd[2], mode, cap;
 
 	mode = 0;
 	port = NULL;
 	fd[0] = 0;
 	fd[1] = 1;
-	fflag = 0;
 	ARGBEGIN {
 	case 'r':
 		mode |= READ;
@@ -154,7 +153,6 @@ main(int argc, char *argv[])
 		port = EARGF(usage());
 		break;
 	case 'f':
-		fflag = 1;
 		parseintpair(EARGF(usage()), fd);
 		break;
 	default:
@@ -237,13 +235,8 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (argc) {
+	if (argc)
 		spawn(argv[0], argv, mode, fd);
-		if (!fflag) {
-			fd[0] = 6;
-			fd[1] = 7;
-		}
-	}
 
 	if (mode & READ) {
 		if (mode & WRITE) {

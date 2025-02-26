@@ -325,7 +325,6 @@ main(int argc, char *argv[])
 	MIDIClientRef client;
 	OSStatus err;
 	int port[2], fd[2];
-	bool fflag;
 	char *arg, *end;
 	int mode;
 	long n;
@@ -335,7 +334,6 @@ main(int argc, char *argv[])
 	port[1] = -1;
 	fd[0] = 0;
 	fd[1] = 1;
-	fflag = 0;
 	mode = 0;
 	ARGBEGIN {
 	case 'l':
@@ -345,7 +343,6 @@ main(int argc, char *argv[])
 		parseintpair(EARGF(usage()), port);
 		break;
 	case 'f':
-		fflag = 1;
 		parseintpair(EARGF(usage()), fd);
 		break;
 	case 'r':
@@ -360,13 +357,8 @@ main(int argc, char *argv[])
 
 	if (mode == 0)
 		mode = READ | WRITE;
-	if (argc) {
-		if (!fflag) {
-			fd[0] = 6;
-			fd[1] = 7;
-		}
+	if (argc)
 		spawn(argv[0], argv, mode, fd);
-	}
 
 	err = MIDIClientCreate(CFSTR("coremidiio"), notify, ctx, &client);
 	if (err)
