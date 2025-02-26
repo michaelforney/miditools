@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef FATAL_H
+#define FATAL_H
 
 void fatal(const char *msg, ...);
 

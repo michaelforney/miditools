@@ -27,11 +27,13 @@ alsarawio: alsarawio.o
 alsaseqio.o: alsaseqio.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(ALSA_CFLAGS) -c -o $@ alsaseqio.c
 
-alsaseqio: alsaseqio.o util.o
-	$(CC) $(LDFLAGS) $(ALSA_LDFLAGS) -o $@ alsaseqio.o util.o $(ALSA_LDLIBS) -l pthread
+ALSASEQIO_OBJ=alsaseqio.o fatal.o
+alsaseqio: $(ALSASEQIO_OBJ)
+	$(CC) $(LDFLAGS) $(ALSA_LDFLAGS) -o $@ $(ALSASEQIO_OBJ) $(ALSA_LDLIBS) -l pthread
 
-coremidiio: coremidiio.o
-	$(CC) $(LDFLAGS) -o $@ coremidiio.o -framework CoreMIDI -framework CoreFoundation
+COREMIDIIO_OBJ=coremidiio.o fatal.o
+coremidiio: $(COREMIDIIO_OBJ)
+	$(CC) $(LDFLAGS) -o $@ $(COREMIDIIO_OBJ) -framework CoreMIDI -framework CoreFoundation
 
 .PHONY: install
 install: $(BIN)
