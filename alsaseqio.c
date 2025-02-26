@@ -202,13 +202,11 @@ main(int argc, char *argv[])
 		fprintf(stderr, "snd_seq_set_client_name: %s\n", snd_strerror(err));
 		return 1;
 	}
-	cap = 0;
+	cap = SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE;
 	if (mode & READ)
 		cap |= SND_SEQ_PORT_CAP_WRITE;
 	if (mode & WRITE)
 		cap |= SND_SEQ_PORT_CAP_READ;
-	if (!port)
-		cap |= SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE;
 	err = snd_seq_create_simple_port(seq, "alsaseq", cap, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if (err) {
 		fprintf(stderr, "snd_seq_create_simple_port: %s\n", snd_strerror(err));
