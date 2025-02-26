@@ -22,6 +22,24 @@ usage(void)
 	exit(1);
 }
 
+static void
+writefull(int fd, const unsigned char *buf, size_t len)
+{
+	const unsigned char *pos;
+	ssize_t ret;
+
+	pos = buf;
+	while (len > 0) {
+		ret = write(fd, pos, len);
+		if (ret < 0) {
+			perror("write");
+			exit(1);
+		}
+		pos += ret;
+		len -= ret;
+	}
+}
+
 static void *
 midireader(void *arg)
 {
@@ -29,32 +47,36 @@ midireader(void *arg)
 	ssize_t ret;
 	size_t len;
 	snd_seq_event_t *evt;
-	unsigned char *pos, buf[1024];
+	unsigned char *pos, *end, buf[1024];
 
 	fd = *(int *)arg;
+	pos = buf;
+	end = buf + sizeof buf;
 	for (;;) {
-		ret = snd_seq_event_input(seq, &evt);
-		if (ret < 0) {
-			fprintf(stderr, "snd_seq_event_input: %s\n", snd_strerror(ret));
-			if (ret == -ENOSPC)
-				continue;
-			exit(1);
-		}
-		ret = snd_midi_event_decode(dev, buf, sizeof buf, evt);
-		if (ret < 0) {
-			if (ret == -ENOENT)
-				continue;  /* not a midi message */
-			fatal("snd_midi_event_decode: %s", snd_strerror(ret));
-		}
-		len = ret;
-		pos = buf;
-		while (len > 0) {
-			ret = write(fd, pos, len);
-			if (ret < 0)
-				fatal("write:");
+		do {
+			ret = snd_seq_event_input(seq, &evt);
+			if (ret < 0) {
+				fprintf(stderr, "snd_seq_event_input: %s\n", snd_strerror(ret));
+				if (ret == -ENOSPC)
+					continue;
+				exit(1);
+			}
+		decode:
+			ret = snd_midi_event_decode(dev, pos, end - pos, evt);
+			if (ret < 0) {
+				if (ret == -ENOENT)
+					continue;  /* not a midi message */
+				if (ret == -ENOMEM && pos != buf) {
+					writefull(fd, buf, pos - buf);
+					pos = buf;
+					goto decode;
+				}
+				fatal("snd_midi_event_decode: %s", snd_strerror(ret));
+			}
 			pos += ret;
-			len -= ret;
-		}
+		} while (snd_seq_event_input_pending(seq, 0) && end - pos >= 3);
+		writefull(fd, buf, pos - buf);
+		pos = buf;
 	}
 	return NULL;
 }
