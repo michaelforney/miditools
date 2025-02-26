@@ -16,7 +16,7 @@ struct context {
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: coremidiio [-rw] [-p port] [cmd...]\n");
+	fprintf(stderr, "usage: coremidiio [-rw] [-f rfd,wfd] [-p port] [cmd...]\n");
 	exit(1);
 }
 
