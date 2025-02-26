@@ -45,7 +45,6 @@ midireader(void *arg)
 {
 	int fd;
 	ssize_t ret;
-	size_t len;
 	snd_seq_event_t *evt;
 	unsigned char *pos, *end, buf[1024];
 
