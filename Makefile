@@ -27,7 +27,7 @@ alsarawio: alsarawio.o
 alsaseqio.o: alsaseqio.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(ALSA_CFLAGS) -c -o $@ alsaseqio.c
 
-ALSASEQIO_OBJ=alsaseqio.o fatal.o
+ALSASEQIO_OBJ=alsaseqio.o fatal.o spawn.o
 alsaseqio: $(ALSASEQIO_OBJ)
 	$(CC) $(LDFLAGS) $(ALSA_LDFLAGS) -o $@ $(ALSASEQIO_OBJ) $(ALSA_LDLIBS) -l pthread
 
