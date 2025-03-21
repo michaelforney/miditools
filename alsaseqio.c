@@ -223,6 +223,8 @@ main(int argc, char *argv[])
 		fprintf(stderr, "snd_seq_port_info_malloc: %s\n", snd_strerror(err));
 		return 1;
 	}
+	self.client = snd_seq_client_id(seq);
+	self.port = 0;
 	if (port) {
 		err = snd_seq_get_any_port_info(seq, dest.client, dest.port, info);
 		if (err) {
@@ -237,8 +239,6 @@ main(int argc, char *argv[])
 			fprintf(stderr, "snd_seq_port_subscribe_malloc: %s\n", snd_strerror(err));
 			return 1;
 		}
-		self.client = snd_seq_client_id(seq);
-		self.port = 0;
 		snd_seq_port_subscribe_set_sender(sub, &self);
 		snd_seq_port_subscribe_set_dest(sub, &dest);
 		err = snd_seq_subscribe_port(seq, sub);
@@ -253,6 +253,8 @@ main(int argc, char *argv[])
 			fprintf(stderr, "snd_seq_subscribe_port: %s\n", snd_strerror(err));
 			return 1;
 		}
+	} else {
+		fprintf(stderr, "using port %d:%d\n", self.client, self.port);
 	}
 
 	err = snd_midi_event_new(1024, &dev);
