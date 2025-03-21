@@ -18,6 +18,9 @@ BIN=$(BIN-y)
 BIN-$(ALSA)+=alsarawio alsaseqio
 BIN-$(COREMIDI)+=coremidiio
 
+MAN=$(MAN-y)
+MAN-$(ALSA)+=alsaseqio.1
+
 TARGET=$(BIN)
 
 all: $(TARGET)
@@ -41,6 +44,7 @@ install: $(BIN)
 	mkdir -p $(DESTDIR)$(BINDIR)
 	cp $(BIN) $(DESTDIR)$(BINDIR)/
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
+	cp $(MAN) $(DESTDIR)$(MANDIR)/man1
 
 .PHONY: clean
 clean:
