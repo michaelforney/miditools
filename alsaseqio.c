@@ -18,7 +18,7 @@ static snd_midi_event_t *dev;
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: alsaseq [-rws] [-f rfd,wfd] [-p client:port] [cmd...]\n");
+	fprintf(stderr, "usage: alsaseqio [-rws] [-f rfd,wfd] [-p client:port] [cmd...]\n");
 	exit(1);
 }
 
