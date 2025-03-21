@@ -18,7 +18,7 @@ static snd_midi_event_t *dev;
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: alsaseqio [-rws] [-f rfd,wfd] [-p client:port] [cmd...]\n");
+	fprintf(stderr, "usage: alsaseqio [-rws] [-f rfd,wfd] [-n name] [-p client:port] [cmd...]\n");
 	exit(1);
 }
 
@@ -158,11 +158,12 @@ main(int argc, char *argv[])
 	snd_seq_addr_t dest, self;
 	snd_seq_port_subscribe_t *sub;
 	pthread_t thread;
-	char *port;
+	char *port, *name;
 	int fd[2], mode, cap;
 
 	mode = 0;
 	cap = 0;
+	name = "alsaseqio";
 	port = NULL;
 	fd[0] = 0;
 	fd[1] = 1;
@@ -172,6 +173,9 @@ main(int argc, char *argv[])
 		break;
 	case 'w':
 		mode |= WRITE;
+		break;
+	case 'n':
+		name = EARGF(usage());
 		break;
 	case 'p':
 		port = EARGF(usage());
@@ -192,7 +196,7 @@ main(int argc, char *argv[])
 	err = snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0);
 	if (err)
 		fatal("snd_seq_open: %s", snd_strerror(err));
-	err = snd_seq_set_client_name(seq, "alsaseq");
+	err = snd_seq_set_client_name(seq, name);
 	if (err) {
 		fprintf(stderr, "snd_seq_set_client_name: %s\n", snd_strerror(err));
 		return 1;
@@ -208,7 +212,7 @@ main(int argc, char *argv[])
 		cap |= SND_SEQ_PORT_CAP_READ;
 	if (!port)
 		cap |= SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE;
-	err = snd_seq_create_simple_port(seq, "alsaseq", cap, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	err = snd_seq_create_simple_port(seq, name, cap, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if (err) {
 		fprintf(stderr, "snd_seq_create_simple_port: %s\n", snd_strerror(err));
 		return 1;
