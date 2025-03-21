@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 	snd_seq_addr_t dest, self;
 	snd_seq_port_subscribe_t *sub;
 	pthread_t thread;
-	char *port, *end;
+	char *port;
 	int fd[2], mode, cap;
 
 	mode = 0;
@@ -189,15 +189,6 @@ main(int argc, char *argv[])
 	if (mode == 0)
 		mode = READ | WRITE;
 
-	if (port) {
-		dest.client = strtol(port, &end, 10);
-		if (*end != ':')
-			usage();
-		dest.port = strtol(end + 1, &end, 10);
-		if (*end)
-			usage();
-	}
-
 	err = snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0);
 	if (err)
 		fatal("snd_seq_open: %s", snd_strerror(err));
@@ -205,6 +196,11 @@ main(int argc, char *argv[])
 	if (err) {
 		fprintf(stderr, "snd_seq_set_client_name: %s\n", snd_strerror(err));
 		return 1;
+	}
+	if (port) {
+		err = snd_seq_parse_address(seq, &dest, port);
+		if (err)
+			fatal("snd_seq_parse_address '%s': %s", port, snd_strerror(err));
 	}
 	if (mode & READ)
 		cap |= SND_SEQ_PORT_CAP_WRITE;
