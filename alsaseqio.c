@@ -153,7 +153,7 @@ parseintpair(const char *arg, int num[static 2])
 int
 main(int argc, char *argv[])
 {
-	int err;
+	int err, sflag;
 	snd_seq_port_info_t *info;
 	snd_seq_addr_t dest, self;
 	snd_seq_port_subscribe_t *sub;
@@ -162,7 +162,7 @@ main(int argc, char *argv[])
 	int fd[2], mode, cap;
 
 	mode = 0;
-	cap = 0;
+	sflag = 0;
 	name = "alsaseqio";
 	port = NULL;
 	fd[0] = 0;
@@ -181,7 +181,7 @@ main(int argc, char *argv[])
 		port = EARGF(usage());
 		break;
 	case 's':
-		cap |= SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE;
+		sflag = 1;
 		break;
 	case 'f':
 		parseintpair(EARGF(usage()), fd);
@@ -206,11 +206,12 @@ main(int argc, char *argv[])
 		if (err)
 			fatal("snd_seq_parse_address '%s': %s", port, snd_strerror(err));
 	}
+	cap = 0;
 	if (mode & READ)
 		cap |= SND_SEQ_PORT_CAP_WRITE;
 	if (mode & WRITE)
 		cap |= SND_SEQ_PORT_CAP_READ;
-	if (!port)
+	if (!port || sflag)
 		cap |= SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE;
 	err = snd_seq_create_simple_port(seq, name, cap, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if (err) {
@@ -225,6 +226,8 @@ main(int argc, char *argv[])
 	}
 	self.client = snd_seq_client_id(seq);
 	self.port = 0;
+	if (!port || sflag)
+		fprintf(stderr, "using port %d:%d\n", self.client, self.port);
 	if (port) {
 		err = snd_seq_get_any_port_info(seq, dest.client, dest.port, info);
 		if (err) {
@@ -253,8 +256,6 @@ main(int argc, char *argv[])
 			fprintf(stderr, "snd_seq_subscribe_port: %s\n", snd_strerror(err));
 			return 1;
 		}
-	} else {
-		fprintf(stderr, "using port %d:%d\n", self.client, self.port);
 	}
 
 	err = snd_midi_event_new(1024, &dev);
