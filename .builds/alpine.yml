@@ -1,0 +1,28 @@
+image: alpine/latest
+packages:
+- linux-headers
+- alsa-lib-dev
+- mandoc
+sources:
+- https://git.sr.ht/~mcf/miditools
+environment:
+  GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no
+secrets:
+- c5c71c57-c3fb-44ba-be76-564c5ec1542e
+tasks:
+- build: make -C miditools
+- deploy: |
+    [ "$GIT_REF" == refs/heads/main ] || exit 0
+    cd miditools
+    git remote add github git@github.com:michaelforney/miditools.git
+    git fetch github gh-pages
+    git worktree add --no-checkout -b gh-pages gh-pages github/gh-pages
+    for f in *.1; do
+    	mandoc -T html -O style=mandoc.css "$f" >"gh-pages/$f.html"
+    done
+    curl -o gh-pages/mandoc.css 'https://cvsweb.bsd.lv/~checkout~/mandoc/mandoc.css?rev=1.49'
+    git -C gh-pages add .
+    git -C gh-pages diff-index --quiet --cached HEAD || {
+    	git -C gh-pages commit -m "Built from $(git rev-parse --short HEAD)" .
+    	git push git@github.com:michaelforney/miditools gh-pages
+    }
