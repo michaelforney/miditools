@@ -18,8 +18,60 @@ static snd_midi_event_t *dev;
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: alsaseqio [-rws] [-f rfd,wfd] [-n name] [-p client:port] [command...]\n");
+	fprintf(stderr, "usage: alsaseqio [-rws] [-f rfd,wfd] [-n name] [-p client:port] [command...]\n"
+	                "       alsaseqio -l\n");
 	exit(1);
+}
+
+static void
+listports(int mode)
+{
+	int err, caps, portmode;
+
+	snd_seq_client_info_t *clientinfo;
+	snd_seq_port_info_t *portinfo;
+
+	err = snd_seq_client_info_malloc(&clientinfo);
+	if (err)
+		fatal("snd_seq_client_info_malloc: %s", snd_strerror(err));
+	err = snd_seq_port_info_malloc(&portinfo);
+	if (err)
+		fatal("snd_seq_client_info_malloc: %s", snd_strerror(err));
+
+	snd_seq_client_info_set_client(clientinfo, -1);
+	for (;;) {
+		err = snd_seq_query_next_client(seq, clientinfo);
+		if (err == -ENOENT)
+			break;
+		if (err)
+			fatal("snd_seq_query_next_client: %s", snd_strerror(err));
+		snd_seq_port_info_set_client(portinfo, snd_seq_client_info_get_client(clientinfo));
+		snd_seq_port_info_set_port(portinfo, -1);
+		for (;;) {
+			err = snd_seq_query_next_port(seq, portinfo);
+			if (err == -ENOENT)
+				break;
+			if (err)
+				fatal("snd_seq_query_next_port: %s", snd_strerror(err));
+			caps = snd_seq_port_info_get_capability(portinfo);
+			portmode = 0;
+			if (caps & SND_SEQ_PORT_CAP_READ && caps & SND_SEQ_PORT_CAP_SUBS_READ)
+				portmode |= READ;
+			if (caps & SND_SEQ_PORT_CAP_WRITE && caps & SND_SEQ_PORT_CAP_SUBS_WRITE)
+				portmode |= WRITE;
+			if (!(mode & portmode))
+				continue;
+			if ((snd_seq_port_info_get_capability(portinfo) & caps) != caps)
+				continue;
+			printf("%3d:%-3d %c%c\t%-32s %s\n",
+				snd_seq_port_info_get_client(portinfo),
+				snd_seq_port_info_get_port(portinfo),
+				portmode & READ ? 'r' : '-',
+				portmode & WRITE ? 'w' : '-',
+				snd_seq_client_info_get_name(clientinfo),
+				snd_seq_port_info_get_name(portinfo));
+		}
+	}
 }
 
 static void
@@ -153,7 +205,7 @@ parseintpair(const char *arg, int num[static 2])
 int
 main(int argc, char *argv[])
 {
-	int err, sflag;
+	int err, lflag, sflag;
 	snd_seq_port_info_t *info;
 	snd_seq_addr_t dest, self;
 	snd_seq_port_subscribe_t *sub;
@@ -162,12 +214,16 @@ main(int argc, char *argv[])
 	int fd[2], mode, cap;
 
 	mode = 0;
+	lflag = 0;
 	sflag = 0;
 	name = "alsaseqio";
 	port = NULL;
 	fd[0] = 0;
 	fd[1] = 1;
 	ARGBEGIN {
+	case 'l':
+		lflag = 1;
+		break;
 	case 'r':
 		mode |= READ;
 		break;
@@ -196,6 +252,10 @@ main(int argc, char *argv[])
 	err = snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0);
 	if (err)
 		fatal("snd_seq_open: %s", snd_strerror(err));
+	if (lflag) {
+		listports(mode);
+		return 0;
+	}
 	err = snd_seq_set_client_name(seq, name);
 	if (err) {
 		fprintf(stderr, "snd_seq_set_client_name: %s\n", snd_strerror(err));
