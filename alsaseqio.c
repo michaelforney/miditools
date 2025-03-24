@@ -257,10 +257,8 @@ main(int argc, char *argv[])
 		return 0;
 	}
 	err = snd_seq_set_client_name(seq, name);
-	if (err) {
-		fprintf(stderr, "snd_seq_set_client_name: %s\n", snd_strerror(err));
-		return 1;
-	}
+	if (err)
+		fatal("snd_seq_set_client_name: %s", snd_strerror(err));
 	if (port) {
 		err = snd_seq_parse_address(seq, &dest, port);
 		if (err)
@@ -274,34 +272,26 @@ main(int argc, char *argv[])
 	if (port && !sflag)
 		cap &= ~(SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE);
 	err = snd_seq_create_simple_port(seq, name, cap, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
-	if (err) {
-		fprintf(stderr, "snd_seq_create_simple_port: %s\n", snd_strerror(err));
-		return 1;
-	}
+	if (err)
+		fatal("snd_seq_create_simple_port: %s", snd_strerror(err));
 
 	err = snd_seq_port_info_malloc(&info);
-	if (err) {
-		fprintf(stderr, "snd_seq_port_info_malloc: %s\n", snd_strerror(err));
-		return 1;
-	}
+	if (err)
+		fatal("snd_seq_port_info_malloc: %s", snd_strerror(err));
 	self.client = snd_seq_client_id(seq);
 	self.port = 0;
 	if (!port || sflag)
 		fprintf(stderr, "using port %d:%d\n", self.client, self.port);
 	if (port) {
 		err = snd_seq_get_any_port_info(seq, dest.client, dest.port, info);
-		if (err) {
-			fprintf(stderr, "snd_seq_get_any_port_info: %s\n", snd_strerror(err));
-			return 1;
-		}
+		if (err)
+			fatal("snd_seq_get_any_port_info: %s", snd_strerror(err));
 		setenv("MIDIPORT", snd_seq_port_info_get_name(info), 1);
 		snd_seq_port_info_free(info);
 
 		err = snd_seq_port_subscribe_malloc(&sub);
-		if (err) {
-			fprintf(stderr, "snd_seq_port_subscribe_malloc: %s\n", snd_strerror(err));
-			return 1;
-		}
+		if (err)
+			fatal("snd_seq_port_subscribe_malloc: %s", snd_strerror(err));
 		snd_seq_port_subscribe_set_sender(sub, &self);
 		snd_seq_port_subscribe_set_dest(sub, &dest);
 		err = snd_seq_subscribe_port(seq, sub);
@@ -312,17 +302,13 @@ main(int argc, char *argv[])
 		snd_seq_port_subscribe_set_sender(sub, &dest);
 		snd_seq_port_subscribe_set_dest(sub, &self);
 		err = snd_seq_subscribe_port(seq, sub);
-		if (err) {
-			fprintf(stderr, "snd_seq_subscribe_port: %s\n", snd_strerror(err));
-			return 1;
-		}
+		if (err)
+			fatal("snd_seq_subscribe_port: %s", snd_strerror(err));
 	}
 
 	err = snd_midi_event_new(1024, &dev);
-	if (err) {
+	if (err)
 		fatal("snd_midi_event_new: %s", snd_strerror(err));
-		return 1;
-	}
 
 	if (argc)
 		spawn(argv[0], argv, mode, fd);
