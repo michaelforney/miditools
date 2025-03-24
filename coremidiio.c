@@ -325,9 +325,7 @@ main(int argc, char *argv[])
 	MIDIClientRef client;
 	OSStatus err;
 	int port[2], fd[2];
-	char *arg, *end;
 	int mode;
-	long n;
 	struct context ctx[2];
 
 	port[0] = -1;
