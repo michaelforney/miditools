@@ -10,7 +10,7 @@
 .Op Fl n Ar name
 .Op Fl f Ar rfd Ns Op , Ns Ar wfd
 .Op Fl p Ar client Ns Op : Ns Ar port
-.Op Ar cmd...
+.Op Ar command...
 .Sh DESCRIPTION
 .Nm
 is a bridge from MIDI byte stream(s) to an ALSA sequencer port.
@@ -19,11 +19,22 @@ If
 .Ar command
 is specified,
 .Nm
-will fork to the background and set up pipes on
+will set up pipes on
 .Ar rfd
 and/or
 .Ar wfd
-that the command can use to read and/or write MIDI messages.
+that can be used to read and/or write MIDI messages.
+Then, it will fork to the background and execute
+.Ar command
+in the foreground.
+.Pp
+Otherwise,
+.Nm
+will read MIDI messages from the sequencer port, writing them to
+.Ar wfd ,
+and read MIDI messages from
+.Ar rfd ,
+writing them to the sequencer port.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl r
@@ -35,7 +46,9 @@ Allow subscription to
 .Nm Ns 's port, even a target port was specified with
 .Fl p .
 .It Fl n
-The name of the ALSA sequencer client and port to use.
+The ALSA sequencer client name and port name to use.
+Defaults to
+.Nm .
 .It Fl f
 The file descriptors on which to read and/or write MIDI 1.0 byte
 streams.
@@ -69,6 +82,7 @@ mode, MIDI messages read from
 are written to the sequencer port.
 .It Fl p
 The target ALSA sequencer port.
+The
 .Ar client
 can be specified by its number, its name, or a prefix of its name.
 The
@@ -92,7 +106,7 @@ Hex dump any MIDI messages received.
 .Pp
 .Dl alsaseqio -r | od -t x1
 .Pp
-Play a C for one second on a synthesizer named
+Play a C note for one second on a synthesizer named
 .Sq MODEL D .
 .Pp
 .Dl { printf '\ex90\ex3C\ex7F'; sleep 1; printf '\ex80\ex3C\ex7F'; } | alsaseqio -wp 'MODEL D'
