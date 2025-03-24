@@ -7,6 +7,7 @@ MANDIR=$(PREFIX)/share/man
 -include config.mk
 
 OS!=uname
+OS?=$(shell uname)
 OS-$(OS)=y
 ALSA?=$(OS-Linux)
 ALSA_CFLAGS?=$$(pkg-config --cflags alsa)
