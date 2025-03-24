@@ -23,10 +23,24 @@ usage(void)
 	exit(1);
 }
 
+static int
+getportmode(snd_seq_port_info_t *info)
+{
+	int caps, mode;
+
+	caps = snd_seq_port_info_get_capability(info);
+	mode = 0;
+	if (caps & SND_SEQ_PORT_CAP_READ && caps & SND_SEQ_PORT_CAP_SUBS_READ)
+		mode |= READ;
+	if (caps & SND_SEQ_PORT_CAP_WRITE && caps & SND_SEQ_PORT_CAP_SUBS_WRITE)
+		mode |= WRITE;
+	return mode;
+}
+
 static void
 listports(int mode)
 {
-	int err, caps, portmode;
+	int err, portmode;
 
 	snd_seq_client_info_t *clientinfo;
 	snd_seq_port_info_t *portinfo;
@@ -53,15 +67,8 @@ listports(int mode)
 				break;
 			if (err)
 				fatal("snd_seq_query_next_port: %s", snd_strerror(err));
-			caps = snd_seq_port_info_get_capability(portinfo);
-			portmode = 0;
-			if (caps & SND_SEQ_PORT_CAP_READ && caps & SND_SEQ_PORT_CAP_SUBS_READ)
-				portmode |= READ;
-			if (caps & SND_SEQ_PORT_CAP_WRITE && caps & SND_SEQ_PORT_CAP_SUBS_WRITE)
-				portmode |= WRITE;
+			portmode = getportmode(portinfo);
 			if (!(mode & portmode))
-				continue;
-			if ((snd_seq_port_info_get_capability(portinfo) & caps) != caps)
 				continue;
 			printf("%3d:%-3d %c%c\t%-32s %s\n",
 				snd_seq_port_info_get_client(portinfo),
@@ -289,21 +296,26 @@ main(int argc, char *argv[])
 		setenv("MIDIPORT", snd_seq_port_info_get_name(info), 1);
 		snd_seq_port_info_free(info);
 
+		mode &= getportmode(info);
+		if (!mode)
+			fatal("port '%s' does not have any matching I/O capabilities");
 		err = snd_seq_port_subscribe_malloc(&sub);
 		if (err)
 			fatal("snd_seq_port_subscribe_malloc: %s", snd_strerror(err));
-		snd_seq_port_subscribe_set_sender(sub, &self);
-		snd_seq_port_subscribe_set_dest(sub, &dest);
-		err = snd_seq_subscribe_port(seq, sub);
-		if (err) {
-			fprintf(stderr, "snd_seq_subscribe_port: %s\n", snd_strerror(err));
-			return 1;
+		if (mode & READ) {
+			snd_seq_port_subscribe_set_sender(sub, &dest);
+			snd_seq_port_subscribe_set_dest(sub, &self);
+			err = snd_seq_subscribe_port(seq, sub);
+			if (err)
+				fatal("snd_seq_subscribe_port: %s", snd_strerror(err));
 		}
-		snd_seq_port_subscribe_set_sender(sub, &dest);
-		snd_seq_port_subscribe_set_dest(sub, &self);
-		err = snd_seq_subscribe_port(seq, sub);
-		if (err)
-			fatal("snd_seq_subscribe_port: %s", snd_strerror(err));
+		if (mode & WRITE) {
+			snd_seq_port_subscribe_set_sender(sub, &self);
+			snd_seq_port_subscribe_set_dest(sub, &dest);
+			err = snd_seq_subscribe_port(seq, sub);
+			if (err)
+				fatal("snd_seq_subscribe_port: %s", snd_strerror(err));
+		}
 	}
 
 	err = snd_midi_event_new(1024, &dev);
