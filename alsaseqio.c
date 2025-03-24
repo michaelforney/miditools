@@ -208,11 +208,11 @@ main(int argc, char *argv[])
 	}
 	cap = 0;
 	if (mode & READ)
-		cap |= SND_SEQ_PORT_CAP_WRITE;
+		cap |= SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE;
 	if (mode & WRITE)
-		cap |= SND_SEQ_PORT_CAP_READ;
-	if (!port || sflag)
-		cap |= SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE;
+		cap |= SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ;
+	if (port && !sflag)
+		cap &= ~(SND_SEQ_PORT_CAP_SUBS_READ | SND_SEQ_PORT_CAP_SUBS_WRITE);
 	err = snd_seq_create_simple_port(seq, name, cap, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if (err) {
 		fprintf(stderr, "snd_seq_create_simple_port: %s\n", snd_strerror(err));
