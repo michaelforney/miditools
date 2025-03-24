@@ -6,12 +6,14 @@ MANDIR=$(PREFIX)/share/man
 
 -include config.mk
 
-ALSA?=y
+OS!=uname
+OS-$(OS)=y
+ALSA?=$(OS-Linux)
 ALSA_CFLAGS?=$$(pkg-config --cflags alsa)
 ALSA_LDFLAGS?=$$(pkg-config --libs-only-L --libs-only-other alsa)
 ALSA_LDLIBS?=$$(pkg-config --libs-only-l alsa)
 
-COREMIDI?=n
+COREMIDI?=$(OS-Darwin)
 COREMIDI_LDLIBS?=-framework CoreMIDI -framework CoreFoundation
 
 BIN=$(BIN-y)
