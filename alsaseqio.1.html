@@ -30,7 +30,7 @@
       <var class="Ar">rfd</var>[,<var class="Ar">wfd</var>]]
       [<code class="Fl">-p</code>
       <var class="Ar">client</var>[:<var class="Ar">port</var>]]
-      [<var class="Ar">cmd...</var>]</td>
+      [<var class="Ar">command...</var>]</td>
   </tr>
 </table>
 </section>
@@ -39,9 +39,14 @@
 <p class="Pp"><code class="Nm">alsaseqio</code> is a bridge from MIDI byte
     stream(s) to an ALSA sequencer port.</p>
 <p class="Pp">If <var class="Ar">command</var> is specified,
-    <code class="Nm">alsaseqio</code> will fork to the background and set up
-    pipes on <var class="Ar">rfd</var> and/or <var class="Ar">wfd</var> that the
-    command can use to read and/or write MIDI messages.</p>
+    <code class="Nm">alsaseqio</code> will set up pipes on
+    <var class="Ar">rfd</var> and/or <var class="Ar">wfd</var> that can be used
+    to read and/or write MIDI messages. Then, it will fork to the background and
+    execute <var class="Ar">command</var> in the foreground.</p>
+<p class="Pp">Otherwise, <code class="Nm">alsaseqio</code> will read MIDI
+    messages from the sequencer port, writing them to <var class="Ar">wfd</var>,
+    and read MIDI messages from <var class="Ar">rfd</var>, writing them to the
+    sequencer port.</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
@@ -54,7 +59,8 @@
   <dd>Allow subscription to <code class="Nm">alsaseqio</code>'s port, even a
       target port was specified with <code class="Fl">-p</code>.</dd>
   <dt id="n"><a class="permalink" href="#n"><code class="Fl">-n</code></a></dt>
-  <dd>The name of the ALSA sequencer client and port to use.</dd>
+  <dd>The ALSA sequencer client name and port name to use. Defaults to
+      <code class="Nm">alsaseqio</code>.</dd>
   <dt id="f"><a class="permalink" href="#f"><code class="Fl">-f</code></a></dt>
   <dd>The file descriptors on which to read and/or write MIDI 1.0 byte streams.
       If only one file descriptor is given, then it is used for both reading and
@@ -71,7 +77,7 @@
         <var class="Ar">rfd</var> are written to the sequencer port.</p>
   </dd>
   <dt id="p"><a class="permalink" href="#p"><code class="Fl">-p</code></a></dt>
-  <dd>The target ALSA sequencer port. <var class="Ar">client</var> can be
+  <dd>The target ALSA sequencer port. The <var class="Ar">client</var> can be
       specified by its number, its name, or a prefix of its name. The
       <var class="Ar">port</var> is specified by its number, and can be omitted
       in which case 0 is used. If <code class="Fl">-p</code> is not specified,
@@ -87,7 +93,7 @@
 <p class="Pp">Hex dump any MIDI messages received.</p>
 <p class="Pp"></p>
 <div class="Bd Bd-indent"><code class="Li">alsaseqio -r | od -t x1</code></div>
-<p class="Pp">Play a C for one second on a synthesizer named &#x2018;MODEL
+<p class="Pp">Play a C note for one second on a synthesizer named &#x2018;MODEL
     D&#x2019;.</p>
 <p class="Pp"></p>
 <div class="Bd Bd-indent"><code class="Li">{ printf '\x90\x3C\x7F'; sleep 1;
