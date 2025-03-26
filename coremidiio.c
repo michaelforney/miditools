@@ -33,6 +33,7 @@ epname(MIDIObjectRef obj, char *buf, size_t len)
 		fatal("MIDIObjectGetStringProperty: %d", err);
 	range = CFRangeMake(0, CFStringGetLength(name));
 	CFStringGetBytes(name, range, kCFStringEncodingUTF8, 0, false, (uint8_t *)buf, len - 1, &used);
+	CFRelease(name);
 	buf[used] = '\0';
 }
 
