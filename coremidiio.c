@@ -21,37 +21,19 @@ usage(void)
 }
 
 static void
-epdesc(MIDIObjectRef obj, char *buf, size_t len)
+epname(MIDIObjectRef obj, char *buf, size_t len)
 {
-	char *pos, *end;
-	CFStringRef model, name;
+	CFStringRef name;
 	CFIndex used;
 	CFRange range;
 	OSStatus err;
 
-	if (len == 0)
-		return;
-	pos = buf;
-	end = buf + len - 1;
-	err = MIDIObjectGetStringProperty(obj, kMIDIPropertyModel, &model);
+	err = MIDIObjectGetStringProperty(obj, kMIDIPropertyDisplayName, &name);
 	if (err)
-		model = 0;
-	err = MIDIObjectGetStringProperty(obj, kMIDIPropertyName, &name);
-	if (err)
-		name = 0;
-	if (model) {
-		range = CFRangeMake(0, CFStringGetLength(model));
-		CFStringGetBytes(model, range, kCFStringEncodingUTF8, '?', false, (unsigned char *)pos, end - pos, &used);
-		pos += used;
-	}
-	if (name && (!model || CFStringCompare(model, name, 0) != kCFCompareEqualTo)) {
-		if (pos != buf && pos != end)
-			*pos++ = ' ';
-		range = CFRangeMake(0, CFStringGetLength(name));
-		CFStringGetBytes(name, range, kCFStringEncodingUTF8, '?', false, (unsigned char *)pos, end - pos, &used);
-		pos += used;
-	}
-	*pos = '\0';
+		fatal("MIDIObjectGetStringProperty: %d", err);
+	range = CFRangeMake(0, CFStringGetLength(name));
+	CFStringGetBytes(name, range, kCFStringEncodingUTF8, 0, false, (uint8_t *)buf, len - 1, &used);
+	buf[used] = '\0';
 }
 
 static void
@@ -59,22 +41,22 @@ listports(void)
 {
 	ItemCount i, n;
 	MIDIEndpointRef ep;
-	char desc[256];
+	char name[256];
 
 	printf("Sources:\n");
 	n = MIDIGetNumberOfSources();
 	for (i = 0; i < n; ++i) {
 		ep = MIDIGetSource(i);
-		epdesc(ep, desc, sizeof desc);
-		printf("%d\t%s\n", (int)i, desc);
+		epname(ep, name, sizeof name);
+		printf("%d\t%s\n", (int)i, name);
 	}
 
 	printf("\nDestinations:\n");
 	n = MIDIGetNumberOfDestinations();
 	for (i = 0; i < n; ++i) {
 		ep = MIDIGetDestination(i);
-		epdesc(ep, desc, sizeof desc);
-		printf("%d\t%s\n", (int)i, desc);
+		epname(ep, name, sizeof name);
+		printf("%d\t%s\n", (int)i, name);
 	}
 }
 
